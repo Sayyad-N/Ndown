@@ -1,20 +1,19 @@
-## Big Update V2 && New Name is Ndown 
-## Ndown V2
+## التحديث الكبير والجديد كليا - إصدار الويب - الاصدار ال3
+## Ndown V3
 
-## What's New?! 
-- Removed GUI 
-- Added Opion For Download YT PlayList
-- Added Opion For Download X & Facebook & Insta & Tiktok Videos 
-- Added Opion For Download Videso in High or Low Res
+## مالجديد ؟
+- إضافه واجهة الويب
+- إضافه حذف تلقائي للملفات خاص بالسيرفرات
+- إضافه دعم لمصنات مشهوره وقد يحمل من منصات أخري ولكنها متعدده ولم تذكر
 
-## Reqirments
-- Installed Python3 
-- Pytube & yt_dlp & OS (Already in Python)
+## المطلوب للعمل 
+- يلزم وجود بايثون 3 
+- Pytube & yt_dlp وجود تلك المكتبات
 
-## How To Run it
+## كيفيه التشغيل
 - ``` pip3 install yt_dlp pytube```
-- ```python3 ndown.py ```
+- ```python3 app.py ```
 
-## Author
-- App By SayyadN
-- IF You Have any issues Email me at `mohammed_sayyad@keemail.me`
+## الناشر
+- بواسطه SayyadN
+- في حال أيه مشاكل تواصل هنا `mohammed_sayyad@keemail.me`
