@@ -1,14 +1,21 @@
 # app.py
 import os
 import uuid
+import re
 from flask import Flask, request, jsonify, send_from_directory, render_template
 import yt_dlp
+from pytube import YouTube
 from utils.cleaner import clean_old_files
 from datetime import datetime
 
 app = Flask(__name__)
 DOWNLOAD_FOLDER = "downloads"
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
+def is_youtube_url(url):
+    """Check if the URL is a valid YouTube link."""
+    youtube_regex = r'(https?://)?(www\.)?(youtube\.com|youtu\.be)/.+'
+    return re.match(youtube_regex, url) is not None
 
 @app.route('/')
 def home():
@@ -26,6 +33,29 @@ def download():
             return jsonify({'success': False, 'error': '⚠️ الرابط غير موجود'})
 
         filename = f"{uuid.uuid4()}"
+        file_path = ""
+
+        # ▶️ Use Pytube if it's a YouTube link
+        if is_youtube_url(url):
+            yt = YouTube(url)
+
+            if file_type == "video":
+                stream = yt.streams.filter(progressive=True, file_extension='mp4')
+                stream = stream.order_by('resolution').desc().first() if quality == 'high' else stream.order_by('resolution').asc().first()
+            elif file_type == "audio":
+                stream = yt.streams.filter(only_audio=True).order_by('abr').desc().first() if quality == 'high' else yt.streams.filter(only_audio=True).order_by('abr').asc().first()
+            else:
+                return jsonify({'success': False, 'error': '⚠️ نوع الملف غير مدعوم'})
+
+            if not stream:
+                return jsonify({'success': False, 'error': '⚠️ لم يتم العثور على البث المطلوب'})
+
+            ext = "mp3" if file_type == "audio" else "mp4"
+            file_path = os.path.join(DOWNLOAD_FOLDER, f"{filename}.{ext}")
+            stream.download(output_path=DOWNLOAD_FOLDER, filename=f"{filename}.{ext}")
+            return jsonify({'success': True, 'path': f"/file/{filename}.{ext}"})
+
+        # 🌐 Else, fallback to yt_dlp (good for other platforms too)
         output_template = os.path.join(DOWNLOAD_FOLDER, f"{filename}.%(ext)s")
 
         ydl_opts = {
@@ -64,7 +94,7 @@ def serve_file(filename):
     else:
         return "⚠️ الملف غير موجود أو تم حذفه", 404
 
-# تنظيف الملفات القديمة كل تشغيل
+# تنظيف الملفات القديمة عند التشغيل
 clean_old_files(DOWNLOAD_FOLDER)
 
 if __name__ == '__main__':

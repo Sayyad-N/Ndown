@@ -84,7 +84,7 @@
       });
       const data = await res.json(); //متغير خاص بالنتيجه بتاعت السيرفر اصلا  
       if (data.success) { //بيتم التحقق من التحميل 
-        document.getElementById('status').innerHTML = `<a href="${data.path}" class="btn btn-outline-light mt-2"حمل الملف</a>`;
+        document.getElementById('status').innerHTML = `<a href="${data.path}" class="btn btn-outline-light mt-2">حمل الان</a>`;
       } else {
         document.getElementById('status').innerHTML = `<div class="text-danger"> خطأ أثناء التحميل</div>`;
       }
