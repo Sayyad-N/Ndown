@@ -3,7 +3,7 @@ import os
 import uuid
 import re
 from flask import Flask, request, jsonify, send_from_directory, render_template
-import yt_dlp
+#import yt_dlp
 from pytube import YouTube
 from utils.cleaner import clean_old_files
 from datetime import datetime
@@ -58,30 +58,30 @@ def download():
         # 🌐 Else, fallback to yt_dlp (good for other platforms too)
         output_template = os.path.join(DOWNLOAD_FOLDER, f"{filename}.%(ext)s")
 
-        ydl_opts = {
-            'outtmpl': output_template,
-            'quiet': True,
-            'format': 'best' if quality == 'high' else 'worst',
-            'postprocessors': [],
-            'noplaylist': True
-        }
+ #       ydl_opts = {
+  #          'outtmpl': output_template,
+   #         'quiet': True,
+    #        'format': 'best' if quality == 'high' else 'worst',
+     #       'postprocessors': [],
+      #      'noplaylist': True
+       # }
 
-        if file_type == "audio":
-            ydl_opts['format'] = 'bestaudio' if quality == 'high' else 'worstaudio'
-            ydl_opts['postprocessors'].append({
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192' if quality == 'high' else '64'
-            })
+        #if file_type == "audio":
+         #   ydl_opts['format'] = 'bestaudio' if quality == 'high' else 'worstaudio'
+          #  ydl_opts['postprocessors'].append({
+           #     'key': 'FFmpegExtractAudio',
+            #    'preferredcodec': 'mp3',
+             #   'preferredquality': '192' if quality == 'high' else '64'
+            #})
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+        #with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+         #   ydl.download([url])
 
-        for file in os.listdir(DOWNLOAD_FOLDER):
-            if filename in file:
-                return jsonify({'success': True, 'path': f"/file/{file}"})
+        #for file in os.listdir(DOWNLOAD_FOLDER):
+         #   if filename in file:
+          #      return jsonify({'success': True, 'path': f"/file/{file}"})
 
-        return jsonify({'success': False, 'error': '⚠️ لم يتم العثور على الملف'})
+        #return jsonify({'success': False, 'error': '⚠️ لم يتم العثور على الملف'})
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
