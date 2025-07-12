@@ -3,10 +3,8 @@ import os
 import uuid
 import re
 from flask import Flask, request, jsonify, send_from_directory, render_template
-#import yt_dlp
 from pytube import YouTube
 from utils.cleaner import clean_old_files
-from datetime import datetime
 
 app = Flask(__name__)
 DOWNLOAD_FOLDER = "downloads"
@@ -32,59 +30,30 @@ def download():
         if not url:
             return jsonify({'success': False, 'error': '⚠️ الرابط غير موجود'})
 
+        if not is_youtube_url(url):
+            return jsonify({'success': False, 'error': '⚠️ هذا الرابط غير مدعوم حالياً إلا من YouTube فقط'})
+
+        yt = YouTube(url)
         filename = f"{uuid.uuid4()}"
-        file_path = ""
+        ext = "mp3" if file_type == "audio" else "mp4"
+        filepath = os.path.join(DOWNLOAD_FOLDER, f"{filename}.{ext}")
 
-        # ▶️ Use Pytube if it's a YouTube link
-        if is_youtube_url(url):
-            yt = YouTube(url)
+        if file_type == "video":
+            stream = yt.streams.filter(progressive=True, file_extension='mp4')
+            stream = stream.order_by('resolution').desc().first() if quality == 'high' else stream.order_by('resolution').asc().first()
+        elif file_type == "audio":
+            stream = yt.streams.filter(only_audio=True).order_by('abr').desc().first() if quality == 'high' else yt.streams.filter(only_audio=True).order_by('abr').asc().first()
+        else:
+            return jsonify({'success': False, 'error': '⚠️ نوع الملف غير مدعوم'})
 
-            if file_type == "video":
-                stream = yt.streams.filter(progressive=True, file_extension='mp4')
-                stream = stream.order_by('resolution').desc().first() if quality == 'high' else stream.order_by('resolution').asc().first()
-            elif file_type == "audio":
-                stream = yt.streams.filter(only_audio=True).order_by('abr').desc().first() if quality == 'high' else yt.streams.filter(only_audio=True).order_by('abr').asc().first()
-            else:
-                return jsonify({'success': False, 'error': '⚠️ نوع الملف غير مدعوم'})
+        if not stream:
+            return jsonify({'success': False, 'error': '⚠️ لم يتم العثور على الجودة المطلوبة'})
 
-            if not stream:
-                return jsonify({'success': False, 'error': '⚠️ لم يتم العثور على البث المطلوب'})
-
-            ext = "mp3" if file_type == "audio" else "mp4"
-            file_path = os.path.join(DOWNLOAD_FOLDER, f"{filename}.{ext}")
-            stream.download(output_path=DOWNLOAD_FOLDER, filename=f"{filename}.{ext}")
-            return jsonify({'success': True, 'path': f"/file/{filename}.{ext}"})
-
-        # 🌐 Else, fallback to yt_dlp (good for other platforms too)
-        output_template = os.path.join(DOWNLOAD_FOLDER, f"{filename}.%(ext)s")
-
- #       ydl_opts = {
-  #          'outtmpl': output_template,
-   #         'quiet': True,
-    #        'format': 'best' if quality == 'high' else 'worst',
-     #       'postprocessors': [],
-      #      'noplaylist': True
-       # }
-
-        #if file_type == "audio":
-         #   ydl_opts['format'] = 'bestaudio' if quality == 'high' else 'worstaudio'
-          #  ydl_opts['postprocessors'].append({
-           #     'key': 'FFmpegExtractAudio',
-            #    'preferredcodec': 'mp3',
-             #   'preferredquality': '192' if quality == 'high' else '64'
-            #})
-
-        #with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-         #   ydl.download([url])
-
-        #for file in os.listdir(DOWNLOAD_FOLDER):
-         #   if filename in file:
-          #      return jsonify({'success': True, 'path': f"/file/{file}"})
-
-        #return jsonify({'success': False, 'error': '⚠️ لم يتم العثور على الملف'})
+        stream.download(output_path=DOWNLOAD_FOLDER, filename=f"{filename}.{ext}")
+        return jsonify({'success': True, 'path': f"/file/{filename}.{ext}"})
 
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        return jsonify({'success': False, 'error': f"❌ خطأ: {str(e)}"})
 
 @app.route('/file/<filename>')
 def serve_file(filename):
