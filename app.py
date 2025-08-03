@@ -1,10 +1,14 @@
-# app.py
+#Code Written By SayyadN
+#Code For Dwonload Videos From Socials Platforms Using YT_DLP
+#Date  : 3-8-2025
+
+
 import os
 import uuid
 from flask import Flask, request, jsonify, send_from_directory, render_template
 import yt_dlp
-from utils.cleaner import clean_old_files
 from datetime import datetime
+import time
 
 app = Flask(__name__)
 DOWNLOAD_FOLDER = "downloads"
@@ -19,7 +23,6 @@ def download():
     try:
         data = request.get_json()
         url = data.get("url")
-        file_type = data.get("type")      # video or audio
         quality = data.get("quality")     # high or low
 
         if not url:
@@ -36,14 +39,6 @@ def download():
             'noplaylist': True
         }
 
-        if file_type == "audio":
-            ydl_opts['format'] = 'bestaudio' if quality == 'high' else 'worstaudio'
-            ydl_opts['postprocessors'].append({
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192' if quality == 'high' else '64'
-            })
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
 
@@ -57,6 +52,19 @@ def download():
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/file/<filename>')
+def clean_old_files(folder, max_age_minutes=30):
+    now = time.time()
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        if os.path.isfile(file_path):
+            file_age = now - os.path.getmtime(file_path)
+            if file_age > max_age_minutes * 60:
+                try:
+                    os.remove(file_path)
+                    print(f"[CLEANER] Removed old file: {filename}")
+                except Exception as e:
+                    print(f"[CLEANER] Failed to delete {filename}: {e}")
+
 def serve_file(filename):
     file_path = os.path.join(DOWNLOAD_FOLDER, filename)
     if os.path.exists(file_path):
