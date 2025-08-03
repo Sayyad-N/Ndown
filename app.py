@@ -52,6 +52,13 @@ def download():
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/file/<filename>')
+def serve_file(filename):
+    file_path = os.path.join(DOWNLOAD_FOLDER, filename)
+    if os.path.exists(file_path):
+        return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
+    else:
+        return "⚠️ الملف غير موجود أو تم حذفه", 404
+
 def clean_old_files(folder, max_age_minutes=30):
     now = time.time()
     for filename in os.listdir(folder):
@@ -65,15 +72,7 @@ def clean_old_files(folder, max_age_minutes=30):
                 except Exception as e:
                     print(f"[CLEANER] Failed to delete {filename}: {e}")
 
-def serve_file(filename):
-    file_path = os.path.join(DOWNLOAD_FOLDER, filename)
-    if os.path.exists(file_path):
-        return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
-    else:
-        return "⚠️ الملف غير موجود أو تم حذفه", 404
-
-# تنظيف الملفات القديمة كل تشغيل
-clean_old_files(DOWNLOAD_FOLDER)
-
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000))) 
+# تنظيف الملفات القديمة كل تشغيل
+    clean_old_files(DOWNLOAD_FOLDER)
