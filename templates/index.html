@@ -99,14 +99,13 @@
       spinner.classList.remove('d-none');
 
       const url = document.getElementById('url').value;
-      const type = document.getElementById('type').value;
       const quality = document.getElementById('quality').value;
 
       try {
         const res = await fetch('/download', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({url, type, quality})
+          body: JSON.stringify({url, quality})
         });
 
         const data = await res.json();
